@@ -4,7 +4,7 @@
 #include "Sguan_Config.h"
 #include <stdint.h>
 
-#define CH_COUNT      6    // JustFloat 通道数
+#define CH_COUNT      8    // JustFloat 通道数
 #define CMD_MAX_LEN   20    // 最大支持的指令长度
 #define HASH_SIZE     32    // 哈希表大小
 typedef void (*CmdCallback)(float value);
@@ -19,17 +19,6 @@ typedef struct {
     uint8_t tail[4];
     float fdata[CH_COUNT];
 }PRINTF_STRUCT;
-
-
-// (测试)
-extern uint16_t Du_0;
-extern uint16_t Du_1;
-extern uint16_t Dv_0;
-extern uint16_t Dv_1;
-extern uint16_t Dw_0;
-extern uint16_t Dw_1;
-
-
 
 extern uint8_t Sguan_PrintfBuff[64];
 

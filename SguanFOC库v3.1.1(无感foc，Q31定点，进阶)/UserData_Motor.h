@@ -5,6 +5,10 @@
 
 static inline void User_MotorSet(void){
     // 1.最开始初始化的Target期望数值
+    // (80Rad/s)
+    Sguan.Foc.Target_Speed = 41943040;
+    // (35Rad/s)
+    // Sguan.Foc.Target_Speed = 18350080;
     // (32Rad/s)
     // Sguan.Foc.Target_Speed = 16777216;
     // (25Rad/s)
@@ -12,7 +16,7 @@ static inline void User_MotorSet(void){
     // (15Rad/s)
     // Sguan.Foc.Target_Speed = 7864320;
     // (0Rad/s)
-    Sguan.Foc.Target_Speed = 0;
+    // Sguan.Foc.Target_Speed = 0;
     // ....................................
     Sguan.Foc.Target_Uq = 0;
 
@@ -25,8 +29,16 @@ static inline void User_MotorSet(void){
     // (0V)
     Sguan.Foc.Target_VF_Uq = 0;
     // ....................................
-    Sguan.Foc.Target_IF_Iq = 0;
-
+    // (5A)
+    Sguan.Foc.Target_IF_Iq = 167772160;
+    // (3A)
+    // Sguan.Foc.Target_IF_Iq = 100663296;
+    // (2A)
+    // Sguan.Foc.Target_IF_Iq = 67108864;
+    // (1A)
+    // Sguan.Foc.Target_IF_Iq = 33554432;
+    // (0A)
+    // Sguan.Foc.Target_IF_Iq = 0;
     Sguan.Foc.Target_Id = 0;
     Sguan.Foc.Target_Iq = 0;
 
@@ -42,9 +54,9 @@ static inline void User_MotorSet(void){
 
     // 2.电机工作电压设定（固定则自己填写）
     // (0x06000000 · 实际表示 ≈ 48 · 归一化 0.046875)
-    Sguan.Foc.VBUS = 100663296;                  // (Q31)电机当前电压 48
+    // Sguan.Foc.VBUS = 100663296;                  // (Q31)电机当前电压 48
     // Sguan.Foc.VBUS = 201326592;                  // (Q31)电机当前电压 96
-    // Sguan.Foc.VBUS = 402653184;                  // (Q31)电机当前电压 192
+    Sguan.Foc.VBUS = 402653184;                  // (Q31)电机当前电压 192
     // Sguan.Foc.VBUS = 629145600;                  // (Q31)电机当前电压 300
 
     // 3.电机本体参数设定
@@ -53,7 +65,7 @@ static inline void User_MotorSet(void){
     //  注意：u1 > 2900 时（Du > 96.7% 的顶端）峰顶直写落后于下降段匹配点，
     //  该下降段最多丢约 100 tick（≈2us）导通时间——顶端畸变，由用户在
     //  输出部分自行限幅控制。)
-    Sguan.Motor.Duty = 2000;                    // (uint16_t)PWM满计数值
+    Sguan.Motor.Duty = 6857;                    // (uint16_t)PWM满计数值
 
     Sguan.Motor.Rs = 1.12f;                     // (float)电机相电阻
     Sguan.Motor.Ld = 0.00282163f;               // (float)电机D轴电感

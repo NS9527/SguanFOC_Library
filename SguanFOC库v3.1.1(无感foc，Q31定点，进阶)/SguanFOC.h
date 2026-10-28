@@ -22,7 +22,7 @@
 #define MODE_NLFO_Voltag            0x02        // NLFO单电压开环
 #define MODE_NLFO_Vel               0x03        // NLFO零速双闭环
 #define MODE_NLFO_Speed0            0x04        // 磁链双闭环(VF切磁链观测器)
-#define MODE_NLFO_Speed1            0x05        // 磁链双闭环(IF切磁链观测器)
+#define MODE_NLFO_Speed1            0x05        // 磁链双闭环(IF切磁链观测器) 目标模式
 
 typedef struct{
     // ....................... [LPF低通滤波器] .......................
@@ -45,6 +45,18 @@ typedef struct{
     // ....................... [NLFO无感磁链] ........................
     NLFO_STRUCT NLFO;                           // (NLFO)无感磁链观测器
 }Transfer_STRUCT;
+
+typedef struct{
+    Q31_t Low_angle;                        // (中间量)低速域电机的机械角度
+    Q31_t High_angle;                       // (中间量)高速域电机的机械角度
+    Q31_t Low_Wm;                           // (中间量)低速域电机的机械角速度
+    Q31_t High_Wm;                          // (中间量)高速域电机的机械角速度
+
+    Q31_t Speed_abs;                        // (中间量)速度Speed_in的绝对值
+
+    Q31_t Sensorless_Switch;                // (参数设计)角度解耦低速域_过渡区分界线
+    Q31_t Sensorless_Start;                 // (参数设计)无感高速域观测器开始运行界限
+}Value_STRUCT;
 
 typedef struct{
     // ....................... [Encoder电机角度相关] .................
@@ -154,6 +166,7 @@ typedef struct{
     uint8_t Error_Code;                         // [数据]Error_Code存储电机错误状态
 
     Transfer_STRUCT Transfer;                   // [嵌套结构体]传递函数模块
+    Value_STRUCT Value;                         // [嵌套结构体]无感切换模块
     Motor_STRUCT Motor;                         // [嵌套结构体]电机参数
     Foc_STRUCT Foc;                             // [嵌套结构体]FOC运行参数
     Float_STRUCT Float;                         // [嵌套结构体]Float便捷浮点

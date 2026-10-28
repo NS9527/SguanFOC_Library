@@ -45,14 +45,6 @@ int fputc(int ch, FILE *f) {
 }
 #endif
 
-uint16_t Du_0 = 1000;
-uint16_t Du_1 = 1000;
-uint16_t Dv_0 = 1500;
-uint16_t Dv_1 = 1500;
-uint16_t Dw_0 = 2000;
-uint16_t Dw_1 = 2000;
-
-
 /* ==================== 哈希/字典映射实现 =================== */
 // 轻量级字符串哈希函数 (DJB2算法)
 static uint32_t Hash_Compute(const char *str, uint8_t len){
@@ -78,8 +70,8 @@ static void Handle_Speed(float value){
     if(value <= 0.0f){
         return;
     }
-    Sguan.Float.Target_Speed = value;
-    // Sguan.Foc.Target_Speed = iqmath_from_float(value, BASE_Speed);
+    // Sguan.Float.Target_Speed = value;
+    Sguan.Foc.Target_Speed = iqmath_from_float(value, BASE_Speed);
 }
 
 // 指令处理回调函数库->Position
@@ -99,51 +91,13 @@ static void Handle_Iq(float value){
 
 // 指令处理回调函数库->Ud
 static void Handle_Ud(float value){
-    Sguan.Foc.Target_Uq = iqmath_from_float(value, BASE_Voltage);
+
 }
 
 // 指令处理回调函数库->Uq
 static void Handle_Uq(float value){
-
+    Sguan.Foc.Target_Uq = iqmath_from_float(value, BASE_Voltage);
 }
-
-// ==============================================
-static void Handle_Du0(float value){
-    uint16_t data = (uint16_t)value;
-    iqmath_u16_limit(&data, 2999, 0);
-    Du_0 = data;
-}
-
-static void Handle_Du1(float value){
-    uint16_t data = (uint16_t)value;
-    iqmath_u16_limit(&data, 2999, 0);
-    Du_1 = data;
-}
-
-static void Handle_Dv0(float value){
-    uint16_t data = (uint16_t)value;
-    iqmath_u16_limit(&data, 2999, 0);
-    Dv_0 = data;
-}
-
-static void Handle_Dv1(float value){
-    uint16_t data = (uint16_t)value;
-    iqmath_u16_limit(&data, 2999, 0);
-    Dv_1 = data;
-}
-
-static void Handle_Dw0(float value){
-    uint16_t data = (uint16_t)value;
-    iqmath_u16_limit(&data, 2999, 0);
-    Dw_0 = data;
-}
-
-static void Handle_Dw1(float value){
-    uint16_t data = (uint16_t)value;
-    iqmath_u16_limit(&data, 2999, 0);
-    Dw_1 = data;
-}
-
 
 // 动态可修改的指令字典（预留 hash_val 位置为 0）
 CMD_MAP_STRUCT Cmd_Dict[] = {
@@ -154,13 +108,6 @@ CMD_MAP_STRUCT Cmd_Dict[] = {
     {"Iq",          0, Handle_Iq},
     {"Ud",          0, Handle_Ud},
     {"Uq",          0, Handle_Uq},
-
-    {"Du0",          0, Handle_Du0},
-    {"Du1",          0, Handle_Du1},
-    {"Dv0",          0, Handle_Dv0},
-    {"Dv1",          0, Handle_Dv1},
-    {"Dw0",          0, Handle_Dw0},
-    {"Dw1",          0, Handle_Dw1},
 
     {"User0",       0, User_AO_Adjust},
     {"User1",       0, User_BO_Adjust},

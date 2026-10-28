@@ -8,11 +8,11 @@
  * @reminder: 1->MODE_IF_Only           IF控制              (无感电流幅频控制开环)yes
  * @reminder: 2->MODE_NLFO_Voltag       NLFO单电压开环       (单电压开环：直接启动)yes
  * @reminder: 3->MODE_NLFO_Vel          NLFO零速双闭环       (零速双环：直接启动)yes
- * @reminder: 4->MODE_NLFO_Speed0       磁链速度-电流闭环    (速度-电流闭环“VF切磁链”)
- * @reminder: 5->MODE_NLFO_Speed1       磁链速度-电流闭环    (速度-电流闭环“IF切磁链”)
+ * @reminder: 4->MODE_NLFO_Speed0       磁链速度-电流闭环    (速度-电流闭环“VF切磁链”)yes
+ * @reminder: 5->MODE_NLFO_Speed1       磁链速度-电流闭环    (速度-电流闭环“IF切磁链”)yes 目标模式
  * @return {*}
  */
-#define Define_Run_Mode 2
+#define Define_Run_Mode 5
 
 /**
  * @description: 宏定义0-1决定“电机是否开启电流偏置读取”(默认开启)
@@ -55,11 +55,13 @@
 
 // 定时器中断参数设计
 // (5K)
-// #define TIM_T 2e-4f                         // 最大频率的控制周期
+// #define TIM_T 2e-4f                      // 最大频率的控制周期
 // (4.5K)
 // #define TIM_T 2.222222222e-4f            // 最大频率的控制周期
 // (4K)
-#define TIM_T 2.5e-4f                    // 最大频率的控制周期
+// #define TIM_T 2.5e-4f                    // 最大频率的控制周期
+// (3.5K)
+#define TIM_T 2.857142857142857e-4f            // 最大频率的控制周期
 // (2K)
 // #define TIM_T 5e-4f                      // 最大频率的控制周期
 

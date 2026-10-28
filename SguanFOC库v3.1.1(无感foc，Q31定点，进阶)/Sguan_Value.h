@@ -25,20 +25,23 @@
 // #define Dead_T_q31       iqmath_from_float(Dead_Time,BASE_Time)
 // #define ADC_T_q31        iqmath_from_float(ADC_Time,BASE_Time)
 // (5K)
-// #define PMSM_RUN_T_q31      439804651
+// #define PMSM_RUN_T_q31   439804651
 // (4.5K)
 // #define PMSM_RUN_T_q31   274877907
 // (4K)
-#define PMSM_RUN_T_q31   274877907
+// #define PMSM_RUN_T_q31   274877907
+// (3.5K)
+#define PMSM_RUN_T_q31      314146179
 // (2K)
 // #define PMSM_RUN_T_q31   549755814
 // ....
 // Current_Gain_q31 = (Current_Gain/Q_Current)*2^62 / Current_RAW_SCALE
-// Current_Gain = 0.0081382 (5V基准，0.015R采样电阻，4096采样精度)
+// Current_Gain = 0.0081382 (5V基准，0.015R采样电阻，4096采样精度，10倍)
 // Q_Current        = 64.0
 // 2^62             = 4611686018427387904
 #define Current_RAW_SCALE   500000
-#define Current_Gain_q31    1172806000
+// #define Current_Gain_q31 1172806000
+#define Current_Gain_q31    1776978798
 
 
 #endif // SGUAN_VALUE_H

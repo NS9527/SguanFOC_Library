@@ -117,27 +117,63 @@ static void Float_DataSwitch_Loop(SguanFOC_System_STRUCT *sguan){
 // ================================= (High) ===================================
 static void High_Current_Loop(SguanFOC_System_STRUCT *sguan){
     // 1.读取三相原始数值
+    Q31_t Ia_temp,Ib_temp;
+    // #if CONFIG_CUR
+    // // 带入电流偏置计算
+    // if (sguan->Motor.Current_Dir == 1){        
+    //     sguan->Motor.Real_Ia = iqmath_current_raw_to_q31(
+    //         User_ReadADC_Raw(0) - sguan->Motor.Current_Offset0);
+    //     sguan->Motor.Real_Ib = iqmath_current_raw_to_q31(
+    //         User_ReadADC_Raw(1) - sguan->Motor.Current_Offset1);
+    //     // sguan->Motor.Real_Ic = iqmath_current_raw_to_q31(
+    //     //      User_ReadADC_Raw(2) - sguan->Motor.Current_Offset2);
+    //     // (注释掉Ic电流的读取，是为了节省运算)
+    // }
+    // else{
+    //     sguan->Motor.Real_Ia = -iqmath_current_raw_to_q31(
+    //         User_ReadADC_Raw(0) - sguan->Motor.Current_Offset0);
+    //     sguan->Motor.Real_Ib = -iqmath_current_raw_to_q31(
+    //         User_ReadADC_Raw(1) - sguan->Motor.Current_Offset1);
+    //     // sguan->Motor.Real_Ic = -iqmath_current_raw_to_q31(
+    //     //      User_ReadADC_Raw(2) - sguan->Motor.Current_Offset2);
+    // }
+    // #else // CONFIG_CUR
+    // // 不带入电流偏置计算
+    // if (sguan->Motor.Current_Dir == 1){
+    //     sguan->Motor.Real_Ia = iqmath_current_raw_to_q31(
+    //         User_ReadADC_Raw(0));
+    //     sguan->Motor.Real_Ib = iqmath_current_raw_to_q31(
+    //         User_ReadADC_Raw(1));
+    //     // sguan->Motor.Real_Ic = iqmath_current_raw_to_q31(
+    //     //     User_ReadADC_Raw(2));
+    //     // (注释掉Ic电流的读取，是为了节省运算)
+    // }
+    // else{
+    //     sguan->Motor.Real_Ia = -iqmath_current_raw_to_q31(
+    //         User_ReadADC_Raw(0));
+    //     sguan->Motor.Real_Ib = -iqmath_current_raw_to_q31(
+    //         User_ReadADC_Raw(1));
+    // }
+    // #endif // CONFIG_CUR
+
+    // ............................................................
     #if CONFIG_CUR
-    // 带入电流偏置计算
     if (sguan->Motor.Current_Dir == 1){        
-        sguan->Motor.Real_Ia = iqmath_current_raw_to_q31(
+        Ia_temp = iqmath_current_raw_to_q31(
             User_ReadADC_Raw(0) - sguan->Motor.Current_Offset0);
-        sguan->Motor.Real_Ib = iqmath_current_raw_to_q31(
+        Ib_temp = iqmath_current_raw_to_q31(
             User_ReadADC_Raw(1) - sguan->Motor.Current_Offset1);
         // sguan->Motor.Real_Ic = iqmath_current_raw_to_q31(
-        //     User_ReadADC_Raw(2) - sguan->Motor.Current_Offset2);
-        // (注释掉Ic电流的读取，是为了节省运算)
-        sguan->Motor.Real_Ic = iqmath_current_raw_to_q31(
-             User_ReadADC_Raw(2) - sguan->Motor.Current_Offset2);
+        //      User_ReadADC_Raw(2) - sguan->Motor.Current_Offset2);
         // (注释掉Ic电流的读取，是为了节省运算)
     }
     else{
-        sguan->Motor.Real_Ia = -iqmath_current_raw_to_q31(
+        Ia_temp = -iqmath_current_raw_to_q31(
             User_ReadADC_Raw(0) - sguan->Motor.Current_Offset0);
-        sguan->Motor.Real_Ib = -iqmath_current_raw_to_q31(
+        Ib_temp = -iqmath_current_raw_to_q31(
             User_ReadADC_Raw(1) - sguan->Motor.Current_Offset1);
-        sguan->Motor.Real_Ic = -iqmath_current_raw_to_q31(
-             User_ReadADC_Raw(2) - sguan->Motor.Current_Offset2);
+        // sguan->Motor.Real_Ic = -iqmath_current_raw_to_q31(
+        //      User_ReadADC_Raw(2) - sguan->Motor.Current_Offset2);
     }
     #else // CONFIG_CUR
     // 不带入电流偏置计算
@@ -157,6 +193,14 @@ static void High_Current_Loop(SguanFOC_System_STRUCT *sguan){
             User_ReadADC_Raw(1));
     }
     #endif // CONFIG_CUR
+    sguan->Motor.Real_Ia = Transfer_LPF_Loop(
+        &sguan->Transfer.LPF_D, 
+        Ia_temp);
+    sguan->Motor.Real_Ib = Transfer_LPF_Loop(
+        &sguan->Transfer.LPF_Q, 
+        Ib_temp);
+    // ................................................................
+
 
     // 2.坐标变换计算
     clarke(&sguan->Motor.Real_Ialpha, 
@@ -171,12 +215,17 @@ static void High_Current_Loop(SguanFOC_System_STRUCT *sguan){
         sguan->Foc.Cosine);
 
     // 3.电流DQ轴滤波
-    sguan->Motor.Real_Id = Transfer_LPF_Loop(
-        &sguan->Transfer.LPF_D, 
-        sguan->Motor.Real_Id_temp);
-    sguan->Motor.Real_Iq = Transfer_LPF_Loop(
-        &sguan->Transfer.LPF_Q, 
-        sguan->Motor.Real_Iq_temp);
+    // sguan->Motor.Real_Id = Transfer_LPF_Loop(
+    //     &sguan->Transfer.LPF_D, 
+    //     sguan->Motor.Real_Id_temp);
+    // sguan->Motor.Real_Iq = Transfer_LPF_Loop(
+    //     &sguan->Transfer.LPF_Q, 
+    //     sguan->Motor.Real_Iq_temp);
+
+    // ................................................
+    sguan->Motor.Real_Id = sguan->Motor.Real_Id_temp;
+    sguan->Motor.Real_Iq = sguan->Motor.Real_Iq_temp;
+    // ................................................
 }
 
 static void High_Encoder_Loop(SguanFOC_System_STRUCT *sguan){
@@ -186,7 +235,7 @@ static void High_Encoder_Loop(SguanFOC_System_STRUCT *sguan){
         &sguan->Transfer.LPF_Ltd, 
         sguan->Foc.Target_Uq);
 
-    sguan->Foc.Ud_in = 2097152;
+    sguan->Foc.Ud_in = 1897152;
     #else // CONFIG_MODE
     sguan->Foc.Speed_in = Transfer_LPF_Loop(
         &sguan->Transfer.LPF_Ltd, 
@@ -214,7 +263,7 @@ static void High_Encoder_Loop(SguanFOC_System_STRUCT *sguan){
         &sguan->Transfer.LPF_Speed, 
         sguan->Transfer.PLL.go.OutWe);
     #endif // CONFIG_Observation
-    #else // CONFIG_MODE
+    #elif (CONFIG_MODE==MODE_NLFO_Voltag) || (CONFIG_MODE==MODE_NLFO_Vel)
     
     // 2.运行无感foc控制算法
     // (运行无感NLFO磁链观测器)
@@ -228,6 +277,96 @@ static void High_Encoder_Loop(SguanFOC_System_STRUCT *sguan){
 
     // (刷新电机角度相关信息)
     sguan->Motor.Real_Re = sguan->Transfer.PLL.go.OutRe;
+    #elif (CONFIG_MODE==MODE_NLFO_Speed0) || (CONFIG_MODE==MODE_NLFO_Speed1)
+    // .................................................................
+    Q31_t Speed, Re;
+    sguan->Value.Speed_abs = iqmath_abs(sguan->Foc.Speed_in);
+
+    if (sguan->Value.Speed_abs >= sguan->Value.Sensorless_Start){
+        Transfer_NLFO_Loop(sguan, &sguan->Transfer.PLL);
+    }
+
+    // 这里输出的是High_Wm机械角速度，High_angle电子角度
+    sguan->Value.High_Wm = sguan->Transfer.PLL.go.OutWe/sguan->Motor.Poles; // !!!
+    sguan->Value.High_angle = sguan->Transfer.PLL.go.OutRe;
+
+    static uint8_t count_high = 0;
+    if (sguan->Value.Speed_abs <= sguan->Value.Sensorless_Switch){
+        iqmath_rad_loop(
+            &sguan->Value.Low_angle, 
+            sguan->Foc.Speed_in*sguan->Motor.Poles, 
+            PMSM_RUN_T_q31);
+
+        // 这里输出的是Low_Wm机械角速度，Low_angle电子角度
+        // (sguan->Value.Low_angle已经赋值过了)
+        sguan->Value.Low_Wm = sguan->Foc.Speed_in;
+        sguan->Foc.Target_Iq = sguan->Foc.Target_IF_Iq;
+
+        // Speed是机械角速度，Re是电子角度
+        Speed = sguan->Foc.Speed_in;
+        Re = sguan->Value.Low_angle;
+        
+        // 更新高速处理count计数值
+        count_high = 0;
+    }
+    else{
+        // Speed是机械角速度，Re是电子角度
+        Speed = sguan->Value.High_Wm;
+        Re = sguan->Value.High_angle;
+
+        // (速度环积分项初始化为Target_IF_Iq*cos(error))
+        // (电流环D轴PID积分项初始化为Uq_in*sin(error) + Ud_in*cos(error))
+        // (电流环Q轴PID积分项初始化为Uq_in*cos(error) - Ud_in*sin(error))
+        if (count_high == 0){
+            Q31_t error = iqmath_normalize(
+                iqmath_sub(Re,
+                iqmath_normalize(sguan->Value.Low_angle)));
+            Q31_t sine_error, cosine_error;
+            fast_sin_cos(error, 
+                &sine_error, 
+                &cosine_error);
+
+            // 执行积分项初始化
+            Q31_t Speed_I = iqmath_mul(     // (单位)A
+                sguan->Foc.Target_IF_Iq,    // A
+                cosine_error);              // 1
+            sguan->Transfer.PID_Speed.go.Io = iqmath_div(
+                Speed_I,                    // A
+                sguan->Transfer.PID_Speed.go.Ki); // A/Rad
+
+            Q31_t D_I = iqmath_add(         // (单位)V
+                iqmath_mul(sguan->Foc.Uq_in,sine_error),
+                iqmath_mul(sguan->Foc.Ud_in,cosine_error));
+            sguan->Transfer.PID_D.go.Io = iqmath_div(
+                D_I,                        // V
+                sguan->Transfer.PID_D.go.Ki); // V/(A*s)
+
+            Q31_t Q_I = iqmath_sub(         // (单位)V
+                iqmath_mul(sguan->Foc.Uq_in,cosine_error),
+                iqmath_mul(sguan->Foc.Ud_in,sine_error));
+            sguan->Transfer.PID_Q.go.Io = iqmath_div(
+                Q_I,                        // V
+                sguan->Transfer.PID_Q.go.Ki); // V/(A*s)
+
+            count_high = 1;
+        }
+
+        // 帮忙更新强拖的数值
+        // 这里输出的是Low_Wm电子角速度，Low_angle机械角度
+        // (sguan->Value.Low_angle这样传输对于无感算法没问题，对于角度观感会区别)
+        sguan->Value.Low_Wm = sguan->Foc.Speed_in;
+        sguan->Value.Low_angle = Re;
+    }
+
+    // 5.低通滤波
+    Transfer_LPF_Loop(&sguan->Transfer.LPF_Speed, 
+                    Speed);
+                    
+    // 6.电机角度相关数值更新
+    sguan->Motor.Real_Speed = sguan->Transfer.LPF_Speed.go.Output;
+    sguan->Motor.Real_We = sguan->Motor.Real_Speed*sguan->Motor.Poles;
+    sguan->Motor.Real_Re = Re;
+    // .................................................................
     #endif // CONFIG_MODE
 
     // 3.电机三角函数求解
@@ -264,9 +403,71 @@ static void High_Control_Loop(SguanFOC_System_STRUCT *sguan){
         sguan->Motor.Ld, 
         sguan->Motor.Real_Id, 
         sguan->Motor.Flux);
-    #elif CONFIG_MODE>=MODE_NLFO_Vel
+    #elif CONFIG_MODE==MODE_NLFO_Vel
     // 1.转速环控制器求解
     if (sguan->Status == STATUS_COM){
+        static uint8_t count = 0;
+        count++;
+        if (count >= sguan->Transfer.Response){
+            sguan->Foc.Target_Iq = Transfer_PID_Loop(
+                &sguan->Transfer.PID_Speed, 
+                sguan->Foc.Speed_in, 
+                sguan->Motor.Real_Speed);
+
+            count = 0;
+        }
+    }
+
+    // 2.电流环控制器求解
+    sguan->Foc.Ud_in = Transfer_PID_Loop(
+        &sguan->Transfer.PID_D, 
+        sguan->Foc.Target_Id, 
+        sguan->Motor.Real_Id);
+    sguan->Foc.Uq_in = Transfer_PID_Loop(
+        &sguan->Transfer.PID_Q, 
+        sguan->Foc.Target_Iq, 
+        sguan->Motor.Real_Iq);
+
+    // 3.电流前馈计算
+    sguan->Foc.Ud_in += Feedforward_CurrentD(
+        sguan->Motor.Real_We, 
+        sguan->Motor.Lq, 
+        sguan->Motor.Real_Iq);
+    sguan->Foc.Uq_in += Feedforward_CurrentQ(
+        sguan->Motor.Real_We, 
+        sguan->Motor.Ld, 
+        sguan->Motor.Real_Id, 
+        sguan->Motor.Flux);
+    #elif CONFIG_MODE==MODE_NLFO_Speed0
+    // 1.转速环控制器求解
+    if ((sguan->Status == STATUS_COM) && 
+        (sguan->Foc.Speed_in >= sguan->Value.Sensorless_Switch)){
+        static uint8_t count = 0;
+        count++;
+        if (count >= sguan->Transfer.Response){
+            sguan->Foc.Target_Iq = Transfer_PID_Loop(
+                &sguan->Transfer.PID_Speed, 
+                sguan->Foc.Speed_in, 
+                sguan->Motor.Real_Speed);
+
+            count = 0;
+        }
+
+        sguan->Foc.Uq_in = Transfer_PID_Loop(
+            &sguan->Transfer.PID_Q, 
+            sguan->Foc.Target_Iq, 
+            sguan->Motor.Real_Iq);
+    }
+
+    // 2.电流环控制器求解
+    sguan->Foc.Ud_in = Transfer_PID_Loop(
+        &sguan->Transfer.PID_D, 
+        sguan->Foc.Target_Id, 
+        sguan->Motor.Real_Id);
+    #elif CONFIG_MODE==MODE_NLFO_Speed1
+    // 1.转速环控制器求解
+    if ((sguan->Status == STATUS_COM) && 
+        (sguan->Value.Speed_abs >= sguan->Value.Sensorless_Switch)){
         static uint8_t count = 0;
         count++;
         if (count >= sguan->Transfer.Response){
@@ -310,7 +511,6 @@ static void High_PWM_Loop(SguanFOC_System_STRUCT *sguan){
         sguan->Foc.Uq_in, 
         sguan->Foc.Sine, 
         sguan->Foc.Cosine);
-
 
     // 2.运行SVPWM函数
     SVPWM(iqmath_div(sguan->Foc.Ualpha, sguan->Foc.VBUS), 
@@ -454,9 +654,9 @@ static void main_Current_Init(SguanFOC_System_STRUCT *sguan){
     sguan->Motor.Current_Offset1 = (int16_t)(((float)sum1)/((float)(n*m)));
     sguan->Motor.Current_Offset2 = (int16_t)(((float)sum2)/((float)(n*m)));
     #else // CONFIG_CUR
-    sguan->Motor.Current_Offset0 = 0;
-    sguan->Motor.Current_Offset1 = 0;
-    sguan->Motor.Current_Offset2 = 0;
+    sguan->Motor.Current_Offset0 = 2024;
+    sguan->Motor.Current_Offset1 = 2024;
+    sguan->Motor.Current_Offset2 = 2024;
     #endif // CONFIG_CUR
 }
 
